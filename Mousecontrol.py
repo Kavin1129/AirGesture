@@ -58,7 +58,7 @@ while cap.isOpened():
         if fingers[0] == 0 and fingers[1] == 1:
             # Convert Coordinates
             x3 = np.interp(x2, (100, wCam - 100), (0, wscr))
-            y3 = np.interp(y2, (100, hCam - 100), (0, hscr))
+            y3 = np.interp(y2, (100, hCam - 160), (0, hscr))
 
             clocX = plocX + (x3 - plocX) / 5   #smoothing variable
             clocY = plocY + (y3 - plocY) / 5
@@ -76,7 +76,7 @@ while cap.isOpened():
 
     # Volume control based on distance between thumb and index finger
     if len(fingers)!=0:
-        if fingers[0] == 1 and fingers[2] == 1:
+        if fingers[0] == 1 and fingers[2] == 1 and fingers[3] == 0 and fingers[4] == 0:
             length, info = detector.distance_btw_fingers(4, 12, img)
             if length > 20:
                 length=calculate_smoothed_distance(length)
@@ -84,8 +84,10 @@ while cap.isOpened():
 
                 volume.SetMasterVolumeLevel(vol, None)
 
+                #real_vol=np.interp(vol,[minVol,maxVol],[0,100])
+
                 # Visual feedback for volume control
-                cv2.putText(img, f'Volume: {int(vol)}', (40, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 3)
+                #cv2.putText(img, f'Volume: {int(real_vol)}', (40, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 3)
 
     cv2.imshow("Image", img)
 
