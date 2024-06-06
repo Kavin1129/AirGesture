@@ -1,3 +1,5 @@
+from collections import deque
+
 import numpy as np
 import cv2
 import HandDetection as hd
@@ -30,6 +32,15 @@ maxVol = volRange[1]
 click_delay = 1  # 1 second delay
 last_click_time = time.time()
 
+smoothing_factor = 30  # Number of frames to average over
+recent_distances = deque(maxlen=smoothing_factor)
+
+# Function to calculate the smoothed distance
+def calculate_smoothed_distance(new_distance):
+    recent_distances.append(new_distance)
+    smoothed_distance = np.mean(recent_distances)
+    return smoothed_distance
+
 while cap.isOpened():
     success, img = cap.read()
     img = detector.findHands(img)
@@ -49,7 +60,7 @@ while cap.isOpened():
             x3 = np.interp(x2, (100, wCam - 100), (0, wscr))
             y3 = np.interp(y2, (100, hCam - 100), (0, hscr))
 
-            clocX = plocX + (x3 - plocX) / 5
+            clocX = plocX + (x3 - plocX) / 5   #smoothing variable
             clocY = plocY + (y3 - plocY) / 5
 
             autopy.mouse.move(wscr - clocX, clocY)
@@ -64,15 +75,17 @@ while cap.isOpened():
                 last_click_time = time.time()
 
     # Volume control based on distance between thumb and index finger
-    # if len(fingers)!=0:
-    #     if fingers[0] == 1 and fingers[2] == 1:
-    #         length, info = detector.distance_btw_fingers(4, 12, img)
-    #         if length > 20:
-    #             vol = np.interp(length, [25, 150], [minVol, maxVol])
-    #             volume.SetMasterVolumeLevel(vol, None)
-    #
-    #             # Visual feedback for volume control
-    #             cv2.putText(img, f'Volume: {int(vol)}', (40, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 3)
+    if len(fingers)!=0:
+        if fingers[0] == 1 and fingers[2] == 1:
+            length, info = detector.distance_btw_fingers(4, 12, img)
+            if length > 20:
+                length=calculate_smoothed_distance(length)
+                vol = np.interp(length, [25, 150], [minVol, maxVol])
+
+                volume.SetMasterVolumeLevel(vol, None)
+
+                # Visual feedback for volume control
+                cv2.putText(img, f'Volume: {int(vol)}', (40, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 3)
 
     cv2.imshow("Image", img)
 
