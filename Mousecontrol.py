@@ -61,7 +61,7 @@ while cap.isOpened():
             y3 = np.interp(y2, (100, hCam - 160), (0, hscr))
 
             clocX = plocX + (x3 - plocX) / 5   #smoothing variable
-            clocY = plocY + (y3 - plocY) / 5
+            clocY = plocY + (y3 - plocY) / 5    #smoothing variable
 
             autopy.mouse.move(wscr - clocX, clocY)
             plocX, plocY = clocX, clocY
